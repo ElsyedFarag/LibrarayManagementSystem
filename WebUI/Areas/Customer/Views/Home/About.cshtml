@@ -10,13 +10,15 @@
         .GetAwaiter().GetResult()
         .ToList()
         .Count();
-    ViewBag.books = unitOfWork.GetRepository<Book>()
+    ViewBag.books = unitOfWork
+        .GetRepository<Book>()
         .GetAllAsync()
         .GetAwaiter()
         .GetResult()
         .ToList()
         .Count();
-    int value = unitOfWork.GetRepository<User>().GetAllAsync()
+    int value = unitOfWork.GetRepository<User>()
+        .GetAllAsync(x=>x.IsDeleted == false)
         .GetAwaiter()
         .GetResult()
         .ToList()
