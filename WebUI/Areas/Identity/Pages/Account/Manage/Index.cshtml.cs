@@ -105,67 +105,96 @@ namespace WebUI.Areas.Identity.Pages.Account.Manage
 			return Page();
 		}
 
-		public async Task<IActionResult> OnPostAsync()
-		{
-			var user = await _userManager.GetUserAsync(User);
-			if (user == null)
-			{
-				return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
-			}
+        public async Task<IActionResult> OnPostAsync()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+            }
 
-			if (!ModelState.IsValid)
-			{
-				await LoadAsync(user);
-				return Page();
-			}
+            if (!ModelState.IsValid)
+            {
+                await LoadAsync(user);
+                return Page();
+            }
 
-			var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
-			if (Input.PhoneNumber != phoneNumber)
-			{
-				var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
-				if (!setPhoneResult.Succeeded)
-				{
-					StatusMessage = "Unexpected error when trying to set phone number.";
-					return RedirectToPage();
-				}
-			}
+            // Update Phone Number
+            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
+            if (Input.PhoneNumber != phoneNumber)
+            {
+                var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
+                if (!setPhoneResult.Succeeded)
+                {
+                    StatusMessage = "Unexpected error when trying to set phone number.";
+                    return RedirectToPage();
+                }
+            }
 
-			var userUP = _userManager.Users.FirstOrDefaultAsync(userId => userId.Id == user.Id).GetAwaiter().GetResult();
-			var firstName = userUP.FirstName;
-			if (Input.FirstName != firstName)
-			{
-				userUP.FirstName = Input.FirstName;
-			}
+            // Update User Profile Fields
+            var userUP = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
+            if (userUP == null)
+            {
+                return NotFound("User not found.");
+            }
 
-			var lastName = userUP.LastName;
-			if (Input.LastName != lastName)
-			{
-				userUP.FirstName = Input.LastName;
-			}
+            // Update First Name and Last Name
+            if (Input.FirstName != userUP.FirstName)
+            {
+                userUP.FirstName = Input.FirstName;
+            }
 
-			var address = userUP.Address;
-			if (Input.Address != address)
-			{
-				userUP.Address = Input.Address;
-			}
-			await _userManager.UpdateAsync(user);
-			if (Request.Form.Files.Count > 0)
-			{
-				var file = Request.Form.Files.FirstOrDefault();
+            if (Input.LastName != userUP.LastName)
+            {
+                userUP.LastName = Input.LastName;
+            }
 
-				//check file size and extension
+            // Update Full Name using the new first and last names
+            userUP.FullName = $"{userUP.FirstName} {userUP.LastName}";
 
-				using (var dataStream = new MemoryStream())
-				{
-					await file.CopyToAsync(dataStream);
-					user.ImageUrl = dataStream.ToArray();
-				}
+            // Update Address
+            if (Input.Address != userUP.Address)
+            {
+                userUP.Address = Input.Address;
+            }
 
-				await _userManager.UpdateAsync(user);
-			}
-			await _signInManager.RefreshSignInAsync(user);
-			StatusMessage = "Your profile has been updated";
-			return RedirectToPage();
-		}
-	}
+            // Save updated user profile
+            var updateResult = await _userManager.UpdateAsync(userUP);
+            if (!updateResult.Succeeded)
+            {
+                StatusMessage = "Unexpected error when trying to update profile.";
+                return RedirectToPage();
+            }
+
+            // Process Image Upload if provided
+            if (Request.Form.Files.Count > 0)
+            {
+                var file = Request.Form.Files.FirstOrDefault();
+
+                // Check file size (limit to 2MB) and file type (only allow jpg and png)
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+                var fileExtension = Path.GetExtension(file.FileName).ToLower();
+                if (file.Length <= 2097152 && allowedExtensions.Contains(fileExtension))
+                {
+                    using (var dataStream = new MemoryStream())
+                    {
+                        await file.CopyToAsync(dataStream);
+                        userUP.ImageUrl = dataStream.ToArray();
+                    }
+
+                    await _userManager.UpdateAsync(userUP);
+                }
+                else
+                {
+                    StatusMessage = "File must be a .jpg or .png image and less than 2MB.";
+                    return RedirectToPage();
+                }
+            }
+
+            await _signInManager.RefreshSignInAsync(user);
+            StatusMessage = "Your profile has been updated";
+            return RedirectToPage();
+        }
+
+    }
 }
