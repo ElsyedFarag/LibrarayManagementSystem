@@ -10,6 +10,16 @@
         font-family: 'Open Sans', sans-serif;
         background-color: #e9ecef;
     }
+
+    .badge-quantity {
+        background-color: #ffc107;
+        color: #343a40;
+        font-weight: bold;
+        border-radius: 12px;
+        padding: 0.2rem 0.6rem;
+        margin-left: 10px;
+        font-size: 0.9rem;
+    }
 </style>
 <head>
     <link href="~/css/purchase.css" rel="stylesheet" />
@@ -35,6 +45,8 @@
                     <h4 class="book-title">@item.PurchaseTransaction.Book.Title</h4>
                     <p class="purchase-date"><i class="far fa-calendar-alt"></i> @item.PurchaseTransaction.PurchaseDate.ToString("dd MMM yyyy")</p>
                     <p class="book-price"><i class="fas fa-tag"></i> $@item.PurchaseTransaction.Price</p>
+                    Qu: <span class="badge badge-quantity">@item.PurchaseTransaction.Quantity</span>
+
 
                     <form method="post" asp-page-handler="SubmitRating">
                         <div class="stars" data-bookid="@item.PurchaseTransaction.BookId">
@@ -66,6 +78,7 @@
                     }
                 </div>
             </div>
+
         }
     </div>
 </div>

@@ -46,13 +46,12 @@ namespace WebUI.Areas.Customer.Controllers
 
             if (filter != null)
             {
-
-                var books = await bookService.GetAllAsync(f => f.Category.Name == filter, c => c.Category, a => a.Author);
+                var books = await bookService.GetAllAsync(x=>x.IsDeleted == false,f => f.Category.Name == filter, c => c.Category, a => a.Author);
                 return View(books.ToPagedList(pageNumber, pageSize));
             }
             else
             {
-                var books = await bookService.GetAllAsync(null, c => c.Category, a => a.Author);
+                var books = await bookService.GetAllAsync(x => x.IsDeleted == false, c => c.Category, a => a.Author);
                 return View(books.ToPagedList(pageNumber, pageSize));
             }
 
