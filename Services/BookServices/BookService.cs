@@ -39,7 +39,8 @@ namespace Services.BookServices
                 PublisherName = b.Publisher?.Name ?? "Unknown",
                 ImagePath = b.Cover,
                 SalePrice = b.SalePrice,
-                RentePrice = b.RentPrice
+                RentePrice = b.RentPrice,
+                IsDeleted = b.IsDeleted
             }).ToList(); ;
         }
 

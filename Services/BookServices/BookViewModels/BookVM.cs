@@ -18,5 +18,6 @@ namespace Services.BookServices.BookViewModels
         public decimal SalePrice {  get; set; }
         public decimal RentePrice {  get; set; }
         public string? ImagePath { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }
