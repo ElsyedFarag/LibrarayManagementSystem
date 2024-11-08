@@ -387,7 +387,7 @@ namespace WebUI.Areas.Customer.Controllers
             }
 
 
-            var domain = "http://localhost:5119";
+            var domain = "http://librarytapp.runasp.net";
 
             var options = new SessionCreateOptions
             {
